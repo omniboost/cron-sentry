@@ -52,6 +52,17 @@ Example
     SENTRY_DSN=https://<your_key>:<your_secret>@app.getsentry.com/<your_project_id>
     0 4 * * * cron-sentry my-process --arg arg2
 
+Notes
+-----
+
+- If your command outputs Unicode, you may need to signal to python that stdin/stdout/stderr are UTF-8 encoded:
+
+::
+
+    PYTHONIOENCODING=utf-8
+    SENTRY_DSN=https://<your_key>:<your_secret>@app.getsentry.com/<your_project_id>
+    0 4 * * * cron-sentry my-process --arg arg2
+
 License
 -------
 
