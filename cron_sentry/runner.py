@@ -9,7 +9,9 @@ from argparse import ArgumentParser, REMAINDER
 from sys import argv
 from time import time
 from .version import VERSION
+import logging
 
+logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s")
 
 # 4096 is more than Sentry will accept by default. SENTRY_MAX_EXTRA_VARIABLE_SIZE in the Sentry configuration
 # also needs to be increased to allow longer strings.
