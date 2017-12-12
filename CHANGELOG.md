@@ -1,6 +1,9 @@
 current
 =======
 
+0.7.1
+=====
+
 * Configure root logger to log raven errors (https://github.com/Yipit/cron-sentry/pull/25)
 * Document PYTHONIOENCODING for UTF-8 IO handling (https://github.com/Yipit/cron-sentry/pull/24)
 
