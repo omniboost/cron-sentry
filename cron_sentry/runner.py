@@ -210,4 +210,3 @@ class CommandReporter(object):
             buf.seek(-(self.string_max_length - 3), SEEK_END)
             last_lines = '...' + buf.read().decode('utf-8')
         return last_lines
-run()
