@@ -2,4 +2,6 @@
 *.pyc
 /build
 /dist
+/.idea
+/.pytest_cache
 .tox

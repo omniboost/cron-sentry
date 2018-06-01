@@ -1,7 +1,7 @@
 import errno
-import os
-
+import logging
 import mock
+import os
 import sys
 
 from cron_sentry.runner import CommandReporter, DEFAULT_STRING_MAX_LENGTH, run, parser
@@ -32,6 +32,7 @@ def test_command_reporter_catches_invalid_commands(ClientMock, sys_mock):
     client = ClientMock()
     client.captureMessage.assert_called_with(
         mock.ANY,
+        level=logging.ERROR,
         time_spent=mock.ANY,
         data=mock.ANY,
         extra={
@@ -75,6 +76,7 @@ sys.exit(2)
     sys_mock.stderr.write.assert_called_with('test-err')
     client.captureMessage.assert_called_with(
         mock.ANY,
+        level=logging.ERROR,
         time_spent=mock.ANY,
         data=mock.ANY,
         extra={
@@ -105,6 +107,7 @@ sys.exit(2)
     sys_mock.stderr.write.assert_called_with(expected_stderr)
     client.captureMessage.assert_called_with(
         mock.ANY,
+        level=logging.ERROR,
         time_spent=mock.ANY,
         data=mock.ANY,
         extra={
@@ -127,6 +130,7 @@ def test_command_line_should_support_command_args_without_double_dashes(CommandR
         dsn='http://testdsn',
         string_max_length=DEFAULT_STRING_MAX_LENGTH,
         quiet=False,
+        report_all=False,
         extra={},
     )
 
@@ -143,6 +147,7 @@ def test_command_line_should_support_command_with_double_dashes(CommandReporterM
         dsn='http://testdsn',
         string_max_length=DEFAULT_STRING_MAX_LENGTH,
         quiet=False,
+        report_all=False,
         extra={},
     )
 
@@ -195,6 +200,7 @@ sys.exit(2)
     client = ClientMock()
     client.captureMessage.assert_called_with(
         mock.ANY,
+        level=logging.ERROR,
         time_spent=mock.ANY,
         data=mock.ANY,
         extra={
@@ -228,6 +234,7 @@ sys.exit(2)
     client = ClientMock()
     client.captureMessage.assert_called_with(
         mock.ANY,
+        level=logging.ERROR,
         time_spent=mock.ANY,
         data=mock.ANY,
         extra={
@@ -257,6 +264,7 @@ def test_extra_data_via_env_vars_should_go_to_sentry(ClientMock, sys_mock):
     client = ClientMock()
     client.captureMessage.assert_called_with(
         mock.ANY,
+        level=logging.ERROR,
         time_spent=mock.ANY,
         data=mock.ANY,
         extra={

@@ -23,7 +23,7 @@ parser = ArgumentParser(
     epilog=('The Sentry server address can also be specified through ' +
             'the SENTRY_DSN environment variable ' +
             '(and the --dsn option can be omitted).'),
-    usage='cron-sentry [-h] [--dsn SENTRY_DSN] [-M STRING_MAX_LENGTH] [--quiet] [--version] cmd [arg ...]',
+    usage='cron-sentry [-h] [--dsn SENTRY_DSN] [-M STRING_MAX_LENGTH] [--quiet] [--report-all] [--version] cmd [arg ...]',
 )
 parser.add_argument(
     '--dsn',
@@ -31,7 +31,6 @@ parser.add_argument(
     default=getenv('SENTRY_DSN'),
     help='Sentry server address',
 )
-
 parser.add_argument(
     '-M', '--string-max-length', '--max-message-length',
     type=int,
@@ -42,12 +41,18 @@ parser.add_argument(
     '-q', '--quiet',
     action='store_true',
     default=False,
-    help='suppress all command output'
+    help='Suppress all command output'
 )
 parser.add_argument(
     '--version',
     action='version',
     version=VERSION,
+)
+parser.add_argument(
+    '--report-all',
+    action='store_true',
+    default=False,
+    help='Report to Sentry even if the task has succeeded',
 )
 parser.add_argument(
     'cmd',
@@ -120,6 +125,7 @@ def run(args=argv[1:]):
             string_max_length=opts.string_max_length,
             quiet=opts.quiet,
             extra=_extra_from_env(environ),
+            report_all=opts.report_all
         )
         sys.exit(runner.run())
     else:
@@ -129,12 +135,13 @@ def run(args=argv[1:]):
 
 
 class CommandReporter(object):
-    def __init__(self, cmd, dsn, string_max_length, quiet=False, extra=None):
+    def __init__(self, cmd, dsn, string_max_length, quiet=False, extra=None, report_all=False):
         self.dsn = dsn
         self.command = cmd
         self.string_max_length = string_max_length
         self.quiet = quiet
         self.extra = {}
+        self.report_all = report_all
         if extra is not None:
             self.extra = extra
 
@@ -153,9 +160,9 @@ class CommandReporter(object):
                     last_lines_stdout = self._get_last_lines(stdout)
                     last_lines_stderr = self._get_last_lines(stderr)
 
-                if exit_status != 0:
+                if self.report_all or exit_status != 0:
                     elapsed = int((time() - start) * 1000)
-                    self.report_fail(exit_status, last_lines_stdout, last_lines_stderr, elapsed)
+                    self.report(exit_status, last_lines_stdout, last_lines_stderr, elapsed)
 
                 if not self.quiet:
                     sys.stdout.write(last_lines_stdout)
@@ -163,11 +170,16 @@ class CommandReporter(object):
 
                 return exit_status
 
-    def report_fail(self, exit_status, last_lines_stdout, last_lines_stderr, elapsed):
+    def report(self, exit_status, last_lines_stdout, last_lines_stderr, elapsed):
         if self.dsn is None:
             return
 
-        message = "Command \"%s\" failed" % (self.command,)
+        if exit_status == 0:
+            message = "Command \"%s\" has succeeded" % (self.command,)
+            log_level = logging.INFO
+        else:
+            message = "Command \"%s\" has failed" % (self.command,)
+            log_level = logging.ERROR
 
         client = Client(transport=HTTPTransport, dsn=self.dsn, string_max_length=self.string_max_length)
         extra = self.extra.copy()
@@ -180,6 +192,7 @@ class CommandReporter(object):
 
         client.captureMessage(
             message,
+            level=log_level,
             data={
                 'logger': 'cron',
             },
