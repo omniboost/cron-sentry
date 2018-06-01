@@ -1,5 +1,6 @@
 release:
-	@python setup.py sdist register upload
+	@pip install wheel
+	@python setup.py sdist bdist_wheel register upload
 
 test: install_test_deps
 	@tox
