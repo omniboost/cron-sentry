@@ -205,8 +205,8 @@ class CommandReporter(object):
         file_size = buf.tell()
         if file_size < self.string_max_length:
             buf.seek(0)
-            last_lines = buf.read().decode('utf-8')
+            last_lines = buf.read().decode('utf-8', errors='ignore')
         else:
             buf.seek(-(self.string_max_length - 3), SEEK_END)
-            last_lines = '...' + buf.read().decode('utf-8')
+            last_lines = '...' + buf.read().decode('utf-8', errors='ignore')
         return last_lines
